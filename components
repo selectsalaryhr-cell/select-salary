@@ -1,0 +1,461 @@
+import { useState } from "react";
+
+const industries = {
+  "Information Technology (IT)": {
+    icon: "💻",
+    positions: ["Software Engineer", "Frontend Developer", "Backend Developer", "Full Stack Developer", "DevOps Engineer", "Data Scientist", "ML Engineer", "Cybersecurity Analyst", "Cloud Architect", "QA Engineer", "Product Manager", "UI/UX Designer", "Database Administrator", "System Administrator", "Network Engineer"]
+  },
+  "Banking, Financial Services & Insurance (BFSI)": {
+    icon: "🏦",
+    positions: ["Financial Analyst", "Investment Banker", "Risk Manager", "Compliance Officer", "Credit Analyst", "Relationship Manager", "Actuary", "Insurance Underwriter", "Audit Manager", "Treasury Analyst", "Wealth Manager", "Loan Officer", "Anti-Money Laundering Analyst", "Financial Advisor", "Branch Manager"]
+  },
+  "Healthcare & Medical": {
+    icon: "🏥",
+    positions: ["General Physician", "Surgeon", "Registered Nurse", "Medical Lab Technician", "Pharmacist", "Radiologist", "Physical Therapist", "Healthcare Administrator", "Clinical Research Associate", "Medical Coder", "Dentist", "Psychiatrist", "Paramedic", "Hospital Manager", "Biomedical Engineer"]
+  },
+  "Sales & Marketing": {
+    icon: "📈",
+    positions: ["Sales Executive", "Business Development Manager", "Digital Marketing Manager", "Brand Manager", "SEO Specialist", "Content Strategist", "Social Media Manager", "Growth Hacker", "Account Manager", "Marketing Analyst", "Product Marketing Manager", "Sales Director", "CRM Specialist", "Influencer Marketing Lead", "PR Manager"]
+  },
+  "Retail & E-commerce": {
+    icon: "🛒",
+    positions: ["Store Manager", "E-commerce Manager", "Category Manager", "Visual Merchandiser", "Inventory Manager", "Supply Chain Coordinator", "Customer Experience Manager", "Retail Buyer", "Loss Prevention Officer", "E-commerce Analyst", "Marketplace Manager", "Pricing Analyst", "Fulfillment Coordinator", "Retail Operations Head", "Brand Ambassador"]
+  },
+  "Manufacturing & Engineering": {
+    icon: "⚙️",
+    positions: ["Mechanical Engineer", "Production Manager", "Quality Control Engineer", "Process Engineer", "Plant Manager", "Industrial Engineer", "Electrical Engineer", "Maintenance Technician", "Supply Chain Engineer", "Automation Engineer", "Safety Officer", "Design Engineer", "R&D Engineer", "Lean Manager", "Materials Engineer"]
+  },
+  "Telecommunications": {
+    icon: "📡",
+    positions: ["Network Engineer", "Telecom Project Manager", "RF Engineer", "VoIP Engineer", "Telecom Analyst", "OSS/BSS Developer", "Fiber Optic Technician", "5G Specialist", "Solutions Architect", "Telecom Sales Manager", "Billing Systems Engineer", "NOC Engineer", "Spectrum Manager", "Telecom Regulatory Analyst", "Field Service Engineer"]
+  },
+  "Education & Training": {
+    icon: "🎓",
+    positions: ["Teacher / Faculty", "Principal / Head of School", "Curriculum Developer", "Instructional Designer", "Education Counselor", "Corporate Trainer", "E-learning Developer", "Academic Coordinator", "Special Education Teacher", "Career Counselor", "Admissions Officer", "Research Scholar", "EdTech Specialist", "Coach / Mentor", "Library Manager"]
+  },
+  "Logistics & Supply Chain": {
+    icon: "🚚",
+    positions: ["Logistics Manager", "Supply Chain Analyst", "Warehouse Manager", "Freight Coordinator", "Customs & Compliance Officer", "Procurement Manager", "Fleet Manager", "Distribution Manager", "Operations Manager", "Demand Planner", "Last Mile Delivery Manager", "Cold Chain Specialist", "Export/Import Manager", "3PL Coordinator", "Inventory Analyst"]
+  },
+  "Customer Support / BPO / KPO": {
+    icon: "🎧",
+    positions: ["Customer Support Executive", "Technical Support Agent", "Team Leader / Supervisor", "Quality Analyst", "Process Trainer", "Operations Manager", "Knowledge Process Analyst", "Chat Support Agent", "Voice Process Executive", "Back Office Executive", "Escalation Manager", "CRM Specialist", "Workforce Management Analyst", "Client Servicing Manager", "Service Delivery Manager"]
+  }
+};
+
+const steps = ["Personal Info", "Industry & Role", "Experience", "Documents", "Review"];
+
+export default function RecruitmentForm() {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState({
+    firstName: "", lastName: "", email: "", phone: "", dob: "", gender: "",
+    city: "", state: "", country: "", linkedin: "", portfolio: "",
+    industry: "", position: "", employmentType: "", workMode: "",
+    totalExp: "", currentCompany: "", currentRole: "", currentSalary: "",
+    expectedSalary: "", noticePeriod: "", skills: "", summary: "",
+    resumeFile: null, coverLetter: "", referral: "", heardFrom: "",
+    agreeTerms: false
+  });
+  const [errors, setErrors] = useState({});
+
+  const update = (field, value) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: "" }));
+    if (field === "industry") setForm(prev => ({ ...prev, industry: value, position: "" }));
+  };
+
+  const validate = () => {
+    const errs = {};
+    if (currentStep === 0) {
+      if (!form.firstName.trim()) errs.firstName = "Required";
+      if (!form.lastName.trim()) errs.lastName = "Required";
+      if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) errs.email = "Valid email required";
+      if (!form.phone.match(/^\+?[\d\s\-]{8,15}$/)) errs.phone = "Valid phone required";
+      if (!form.gender) errs.gender = "Required";
+      if (!form.city.trim()) errs.city = "Required";
+      if (!form.country.trim()) errs.country = "Required";
+    }
+    if (currentStep === 1) {
+      if (!form.industry) errs.industry = "Select an industry";
+      if (!form.position) errs.position = "Select a position";
+      if (!form.employmentType) errs.employmentType = "Required";
+      if (!form.workMode) errs.workMode = "Required";
+    }
+    if (currentStep === 2) {
+      if (!form.totalExp) errs.totalExp = "Required";
+      if (!form.skills.trim()) errs.skills = "List at least one skill";
+      if (!form.noticePeriod) errs.noticePeriod = "Required";
+    }
+    if (currentStep === 3) {
+      if (!form.resumeFile) errs.resumeFile = "Upload your resume";
+      if (!form.agreeTerms) errs.agreeTerms = "You must agree to proceed";
+    }
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const next = () => { if (validate()) setCurrentStep(s => s + 1); };
+  const back = () => setCurrentStep(s => s - 1);
+  const handleSubmit = () => { if (validate()) setSubmitted(true); };
+
+  const selectedIndustry = industries[form.industry];
+
+  if (submitted) {
+    return (
+      <div style={{minHeight:"100vh",background:"#0a0f1e",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'DM Sans', sans-serif"}}>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet"/>
+        <div style={{textAlign:"center",color:"#fff",padding:"60px 40px"}}>
+          <div style={{fontSize:80,marginBottom:24}}>✅</div>
+          <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:42,fontWeight:800,marginBottom:16,background:"linear-gradient(135deg,#38bdf8,#818cf8)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Application Submitted!</h1>
+          <p style={{color:"#94a3b8",fontSize:18,maxWidth:480,margin:"0 auto 32px",lineHeight:1.7}}>Thank you <strong style={{color:"#e2e8f0"}}>{form.firstName}</strong>! Your application for <strong style={{color:"#38bdf8"}}>{form.position}</strong> in <strong style={{color:"#818cf8"}}>{form.industry}</strong> has been received.</p>
+          <p style={{color:"#64748b",fontSize:14}}>We'll reach you at <strong style={{color:"#94a3b8"}}>{form.email}</strong> within 3–5 business days.</p>
+          <button onClick={()=>{setSubmitted(false);setCurrentStep(0);setForm({firstName:"",lastName:"",email:"",phone:"",dob:"",gender:"",city:"",state:"",country:"",linkedin:"",portfolio:"",industry:"",position:"",employmentType:"",workMode:"",totalExp:"",currentCompany:"",currentRole:"",currentSalary:"",expectedSalary:"",noticePeriod:"",skills:"",summary:"",resumeFile:null,coverLetter:"",referral:"",heardFrom:"",agreeTerms:false});}} style={{marginTop:40,padding:"14px 36px",background:"linear-gradient(135deg,#38bdf8,#818cf8)",border:"none",borderRadius:12,color:"#fff",fontSize:16,fontWeight:600,cursor:"pointer"}}>Submit Another Application</button>
+        </div>
+      </div>
+    );
+  }
+
+  const inputStyle = (field) => ({
+    width:"100%",padding:"12px 16px",background:"rgba(255,255,255,0.05)",border:`1.5px solid ${errors[field]?"#f87171":"rgba(255,255,255,0.1)"}`,borderRadius:10,color:"#e2e8f0",fontSize:15,outline:"none",boxSizing:"border-box",transition:"border-color 0.2s",fontFamily:"'DM Sans',sans-serif"
+  });
+
+  const selectStyle = (field) => ({...inputStyle(field), appearance:"none"});
+  const labelStyle = { display:"block",marginBottom:6,color:"#94a3b8",fontSize:13,fontWeight:500,letterSpacing:"0.03em" };
+  const errorStyle = { color:"#f87171",fontSize:12,marginTop:4 };
+  const fieldWrap = { marginBottom:20 };
+
+  const Row = ({children, cols=2}) => (
+    <div style={{display:"grid",gridTemplateColumns:`repeat(${cols},1fr)`,gap:16}}>{children}</div>
+  );
+
+  return (
+    <div style={{minHeight:"100vh",background:"#0a0f1e",fontFamily:"'DM Sans',sans-serif",padding:"40px 20px"}}>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet"/>
+      <style>{`
+        input::placeholder,textarea::placeholder{color:#475569;}
+        input:focus,select:focus,textarea:focus{border-color:#38bdf8!important;background:rgba(56,189,248,0.05)!important;}
+        select option{background:#1e293b;color:#e2e8f0;}
+        ::-webkit-scrollbar{width:6px;}
+        ::-webkit-scrollbar-track{background:#0a0f1e;}
+        ::-webkit-scrollbar-thumb{background:#334155;border-radius:3px;}
+        .step-btn:hover{opacity:0.85;transform:translateY(-1px);}
+        .industry-card:hover{border-color:#38bdf8!important;background:rgba(56,189,248,0.08)!important;}
+        .industry-card.selected{border-color:#818cf8!important;background:rgba(129,140,248,0.1)!important;}
+      `}</style>
+
+      <div style={{maxWidth:760,margin:"0 auto"}}>
+        {/* Header */}
+        <div style={{textAlign:"center",marginBottom:40}}>
+          <div style={{display:"inline-flex",alignItems:"center",gap:10,background:"rgba(56,189,248,0.1)",border:"1px solid rgba(56,189,248,0.2)",borderRadius:50,padding:"8px 20px",marginBottom:20}}>
+            <span style={{color:"#38bdf8",fontSize:13,fontWeight:500,letterSpacing:"0.1em"}}>🚀 CAREER OPPORTUNITIES</span>
+          </div>
+          <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(32px,5vw,48px)",fontWeight:800,color:"#fff",margin:"0 0 12px",lineHeight:1.2}}>
+            Join Our{" "}
+            <span style={{background:"linear-gradient(135deg,#38bdf8,#818cf8)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>
+              Talent Network
+            </span>
+          </h1>
+          <p style={{color:"#64748b",fontSize:16,maxWidth:500,margin:"0 auto"}}>Apply across 10+ industry verticals. We connect exceptional talent with world-class organizations.</p>
+        </div>
+
+        {/* Progress Steps */}
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",marginBottom:40,gap:0}}>
+          {steps.map((s,i) => (
+            <div key={i} style={{display:"flex",alignItems:"center"}}>
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
+                <div style={{
+                  width:36,height:36,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",
+                  fontSize:13,fontWeight:700,transition:"all 0.3s",
+                  background: i <= currentStep ? "linear-gradient(135deg,#38bdf8,#818cf8)" : "rgba(255,255,255,0.05)",
+                  color: i <= currentStep ? "#fff" : "#475569",
+                  border: i <= currentStep ? "none" : "1.5px solid rgba(255,255,255,0.1)",
+                  boxShadow: i === currentStep ? "0 0 20px rgba(56,189,248,0.4)" : "none"
+                }}>
+                  {i < currentStep ? "✓" : i+1}
+                </div>
+                <span style={{fontSize:11,color: i === currentStep ? "#38bdf8" : "#475569",fontWeight: i===currentStep?600:400,whiteSpace:"nowrap"}}>{s}</span>
+              </div>
+              {i < steps.length-1 && (
+                <div style={{width:60,height:2,margin:"0 4px",marginBottom:22,background: i < currentStep ? "linear-gradient(90deg,#38bdf8,#818cf8)" : "rgba(255,255,255,0.08)",transition:"background 0.3s"}}/>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Form Card */}
+        <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:20,padding:"40px",backdropFilter:"blur(10px)"}}>
+
+          {/* Step 0 - Personal Info */}
+          {currentStep === 0 && (
+            <div>
+              <h2 style={{color:"#fff",fontSize:22,fontWeight:700,marginBottom:6}}>Personal Information</h2>
+              <p style={{color:"#64748b",fontSize:14,marginBottom:28}}>Tell us a bit about yourself</p>
+              <Row>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>First Name *</label>
+                  <input style={inputStyle("firstName")} value={form.firstName} onChange={e=>update("firstName",e.target.value)} placeholder="John"/>
+                  {errors.firstName && <p style={errorStyle}>{errors.firstName}</p>}
+                </div>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>Last Name *</label>
+                  <input style={inputStyle("lastName")} value={form.lastName} onChange={e=>update("lastName",e.target.value)} placeholder="Doe"/>
+                  {errors.lastName && <p style={errorStyle}>{errors.lastName}</p>}
+                </div>
+              </Row>
+              <Row>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>Email Address *</label>
+                  <input type="email" style={inputStyle("email")} value={form.email} onChange={e=>update("email",e.target.value)} placeholder="john@example.com"/>
+                  {errors.email && <p style={errorStyle}>{errors.email}</p>}
+                </div>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>Phone Number *</label>
+                  <input style={inputStyle("phone")} value={form.phone} onChange={e=>update("phone",e.target.value)} placeholder="+1 234 567 8900"/>
+                  {errors.phone && <p style={errorStyle}>{errors.phone}</p>}
+                </div>
+              </Row>
+              <Row>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>Date of Birth</label>
+                  <input type="date" style={inputStyle("dob")} value={form.dob} onChange={e=>update("dob",e.target.value)}/>
+                </div>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>Gender *</label>
+                  <select style={selectStyle("gender")} value={form.gender} onChange={e=>update("gender",e.target.value)}>
+                    <option value="">Select gender</option>
+                    <option>Male</option><option>Female</option><option>Non-binary</option><option>Prefer not to say</option>
+                  </select>
+                  {errors.gender && <p style={errorStyle}>{errors.gender}</p>}
+                </div>
+              </Row>
+              <Row cols={3}>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>City *</label>
+                  <input style={inputStyle("city")} value={form.city} onChange={e=>update("city",e.target.value)} placeholder="New York"/>
+                  {errors.city && <p style={errorStyle}>{errors.city}</p>}
+                </div>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>State / Province</label>
+                  <input style={inputStyle("state")} value={form.state} onChange={e=>update("state",e.target.value)} placeholder="NY"/>
+                </div>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>Country *</label>
+                  <input style={inputStyle("country")} value={form.country} onChange={e=>update("country",e.target.value)} placeholder="USA"/>
+                  {errors.country && <p style={errorStyle}>{errors.country}</p>}
+                </div>
+              </Row>
+              <Row>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>LinkedIn Profile</label>
+                  <input style={inputStyle("linkedin")} value={form.linkedin} onChange={e=>update("linkedin",e.target.value)} placeholder="linkedin.com/in/johndoe"/>
+                </div>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>Portfolio / Website</label>
+                  <input style={inputStyle("portfolio")} value={form.portfolio} onChange={e=>update("portfolio",e.target.value)} placeholder="johndoe.dev"/>
+                </div>
+              </Row>
+            </div>
+          )}
+
+          {/* Step 1 - Industry & Role */}
+          {currentStep === 1 && (
+            <div>
+              <h2 style={{color:"#fff",fontSize:22,fontWeight:700,marginBottom:6}}>Industry & Position</h2>
+              <p style={{color:"#64748b",fontSize:14,marginBottom:24}}>Select the industry and role you're applying for</p>
+              <div style={fieldWrap}>
+                <label style={labelStyle}>Select Industry *</label>
+                {errors.industry && <p style={errorStyle}>{errors.industry}</p>}
+                <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginTop:8}}>
+                  {Object.entries(industries).map(([name,{icon}]) => (
+                    <div key={name} className={`industry-card${form.industry===name?" selected":""}`}
+                      onClick={()=>update("industry",name)}
+                      style={{padding:"14px 16px",border:`1.5px solid ${form.industry===name?"#818cf8":"rgba(255,255,255,0.08)"}`,borderRadius:12,cursor:"pointer",transition:"all 0.2s",background:form.industry===name?"rgba(129,140,248,0.1)":"rgba(255,255,255,0.02)",display:"flex",alignItems:"center",gap:10}}>
+                      <span style={{fontSize:22}}>{icon}</span>
+                      <span style={{color:form.industry===name?"#e2e8f0":"#94a3b8",fontSize:12.5,fontWeight:form.industry===name?600:400,lineHeight:1.3}}>{name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {selectedIndustry && (
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>Position / Role *</label>
+                  <select style={selectStyle("position")} value={form.position} onChange={e=>update("position",e.target.value)}>
+                    <option value="">Choose a position</option>
+                    {selectedIndustry.positions.map(p => <option key={p}>{p}</option>)}
+                  </select>
+                  {errors.position && <p style={errorStyle}>{errors.position}</p>}
+                </div>
+              )}
+              <Row>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>Employment Type *</label>
+                  <select style={selectStyle("employmentType")} value={form.employmentType} onChange={e=>update("employmentType",e.target.value)}>
+                    <option value="">Select type</option>
+                    <option>Full-time</option><option>Part-time</option><option>Contract</option><option>Freelance</option><option>Internship</option>
+                  </select>
+                  {errors.employmentType && <p style={errorStyle}>{errors.employmentType}</p>}
+                </div>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>Work Mode *</label>
+                  <select style={selectStyle("workMode")} value={form.workMode} onChange={e=>update("workMode",e.target.value)}>
+                    <option value="">Select mode</option>
+                    <option>On-site</option><option>Remote</option><option>Hybrid</option>
+                  </select>
+                  {errors.workMode && <p style={errorStyle}>{errors.workMode}</p>}
+                </div>
+              </Row>
+            </div>
+          )}
+
+          {/* Step 2 - Experience */}
+          {currentStep === 2 && (
+            <div>
+              <h2 style={{color:"#fff",fontSize:22,fontWeight:700,marginBottom:6}}>Experience & Skills</h2>
+              <p style={{color:"#64748b",fontSize:14,marginBottom:28}}>Share your professional background</p>
+              <Row>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>Total Experience *</label>
+                  <select style={selectStyle("totalExp")} value={form.totalExp} onChange={e=>update("totalExp",e.target.value)}>
+                    <option value="">Select range</option>
+                    <option>Fresher (0 years)</option><option>0–1 year</option><option>1–3 years</option><option>3–5 years</option><option>5–8 years</option><option>8–12 years</option><option>12+ years</option>
+                  </select>
+                  {errors.totalExp && <p style={errorStyle}>{errors.totalExp}</p>}
+                </div>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>Notice Period *</label>
+                  <select style={selectStyle("noticePeriod")} value={form.noticePeriod} onChange={e=>update("noticePeriod",e.target.value)}>
+                    <option value="">Select period</option>
+                    <option>Immediate</option><option>15 Days</option><option>30 Days</option><option>60 Days</option><option>90 Days</option><option>More than 90 Days</option>
+                  </select>
+                  {errors.noticePeriod && <p style={errorStyle}>{errors.noticePeriod}</p>}
+                </div>
+              </Row>
+              <Row>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>Current Company</label>
+                  <input style={inputStyle("currentCompany")} value={form.currentCompany} onChange={e=>update("currentCompany",e.target.value)} placeholder="Acme Corp"/>
+                </div>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>Current Role / Title</label>
+                  <input style={inputStyle("currentRole")} value={form.currentRole} onChange={e=>update("currentRole",e.target.value)} placeholder="Senior Developer"/>
+                </div>
+              </Row>
+              <Row>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>Current CTC / Salary (Annual)</label>
+                  <input style={inputStyle("currentSalary")} value={form.currentSalary} onChange={e=>update("currentSalary",e.target.value)} placeholder="e.g. $80,000 or 8 LPA"/>
+                </div>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>Expected CTC / Salary</label>
+                  <input style={inputStyle("expectedSalary")} value={form.expectedSalary} onChange={e=>update("expectedSalary",e.target.value)} placeholder="e.g. $100,000 or 12 LPA"/>
+                </div>
+              </Row>
+              <div style={fieldWrap}>
+                <label style={labelStyle}>Key Skills * <span style={{color:"#475569",fontWeight:400}}>(comma separated)</span></label>
+                <input style={inputStyle("skills")} value={form.skills} onChange={e=>update("skills",e.target.value)} placeholder="React, Node.js, Python, AWS, Leadership..."/>
+                {errors.skills && <p style={errorStyle}>{errors.skills}</p>}
+              </div>
+              <div style={fieldWrap}>
+                <label style={labelStyle}>Professional Summary</label>
+                <textarea style={{...inputStyle("summary"),resize:"vertical",minHeight:110,lineHeight:1.6}} value={form.summary} onChange={e=>update("summary",e.target.value)} placeholder="Briefly describe your background, achievements, and what you bring to the role..."/>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3 - Documents */}
+          {currentStep === 3 && (
+            <div>
+              <h2 style={{color:"#fff",fontSize:22,fontWeight:700,marginBottom:6}}>Documents & Final Details</h2>
+              <p style={{color:"#64748b",fontSize:14,marginBottom:28}}>Upload your resume and complete your application</p>
+              <div style={fieldWrap}>
+                <label style={labelStyle}>Resume / CV * <span style={{color:"#475569",fontWeight:400}}>(PDF, DOC, DOCX — max 5MB)</span></label>
+                <div style={{border:`2px dashed ${errors.resumeFile?"#f87171":"rgba(56,189,248,0.3)"}`,borderRadius:12,padding:"32px 20px",textAlign:"center",background:"rgba(56,189,248,0.03)",cursor:"pointer"}}
+                  onClick={()=>document.getElementById("resumeInput").click()}>
+                  <input id="resumeInput" type="file" accept=".pdf,.doc,.docx" style={{display:"none"}} onChange={e=>{if(e.target.files[0])update("resumeFile",e.target.files[0]);}}/>
+                  <div style={{fontSize:36,marginBottom:12}}>{form.resumeFile?"📄":"☁️"}</div>
+                  <p style={{color:form.resumeFile?"#38bdf8":"#64748b",fontWeight:500}}>{form.resumeFile?form.resumeFile.name:"Click to upload resume"}</p>
+                  {!form.resumeFile && <p style={{color:"#475569",fontSize:13,marginTop:4}}>or drag & drop here</p>}
+                </div>
+                {errors.resumeFile && <p style={errorStyle}>{errors.resumeFile}</p>}
+              </div>
+              <div style={fieldWrap}>
+                <label style={labelStyle}>Cover Letter <span style={{color:"#475569",fontWeight:400}}>(optional)</span></label>
+                <textarea style={{...inputStyle("coverLetter"),resize:"vertical",minHeight:130,lineHeight:1.6}} value={form.coverLetter} onChange={e=>update("coverLetter",e.target.value)} placeholder="Why are you a great fit for this role?"/>
+              </div>
+              <Row>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>How did you hear about us?</label>
+                  <select style={selectStyle("heardFrom")} value={form.heardFrom} onChange={e=>update("heardFrom",e.target.value)}>
+                    <option value="">Select source</option>
+                    <option>LinkedIn</option><option>Indeed</option><option>Glassdoor</option><option>Company Website</option><option>Referral</option><option>Job Fair</option><option>Other</option>
+                  </select>
+                </div>
+                <div style={fieldWrap}>
+                  <label style={labelStyle}>Referral Name <span style={{color:"#475569",fontWeight:400}}>(if applicable)</span></label>
+                  <input style={inputStyle("referral")} value={form.referral} onChange={e=>update("referral",e.target.value)} placeholder="Employee name or ID"/>
+                </div>
+              </Row>
+              <div style={{marginTop:16,padding:"16px 20px",background:"rgba(129,140,248,0.06)",border:"1px solid rgba(129,140,248,0.2)",borderRadius:12,display:"flex",alignItems:"flex-start",gap:12}}>
+                <input type="checkbox" id="terms" checked={form.agreeTerms} onChange={e=>update("agreeTerms",e.target.checked)} style={{marginTop:2,accentColor:"#818cf8",width:16,height:16,cursor:"pointer"}}/>
+                <label htmlFor="terms" style={{color:"#94a3b8",fontSize:14,lineHeight:1.6,cursor:"pointer"}}>
+                  I confirm that all information provided is accurate. I consent to the processing of my personal data for recruitment purposes. *
+                </label>
+              </div>
+              {errors.agreeTerms && <p style={{...errorStyle,marginTop:8}}>{errors.agreeTerms}</p>}
+            </div>
+          )}
+
+          {/* Step 4 - Review */}
+          {currentStep === 4 && (
+            <div>
+              <h2 style={{color:"#fff",fontSize:22,fontWeight:700,marginBottom:6}}>Review Your Application</h2>
+              <p style={{color:"#64748b",fontSize:14,marginBottom:28}}>Please review your details before submitting</p>
+              {[
+                {title:"👤 Personal", data:[["Name",`${form.firstName} ${form.lastName}`],["Email",form.email],["Phone",form.phone],["Location",`${form.city}${form.state?", "+form.state:""}, ${form.country}`],["Gender",form.gender]]},
+                {title:"🏢 Industry & Role", data:[["Industry",form.industry],["Position",form.position],["Employment",form.employmentType],["Work Mode",form.workMode]]},
+                {title:"💼 Experience", data:[["Experience",form.totalExp],["Current Company",form.currentCompany||"—"],["Notice Period",form.noticePeriod],["Skills",form.skills]]},
+                {title:"📎 Documents", data:[["Resume",form.resumeFile?.name||"—"],["Referral",form.referral||"—"],["Source",form.heardFrom||"—"]]}
+              ].map(section => (
+                <div key={section.title} style={{marginBottom:24,padding:"20px",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14}}>
+                  <h3 style={{color:"#94a3b8",fontSize:13,fontWeight:600,letterSpacing:"0.08em",marginBottom:14}}>{section.title}</h3>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:"10px 20px"}}>
+                    {section.data.map(([k,v])=>(
+                      <div key={k}>
+                        <span style={{color:"#475569",fontSize:12}}>{k}</span>
+                        <p style={{color:"#e2e8f0",fontSize:14,fontWeight:500,marginTop:2,wordBreak:"break-word"}}>{v||"—"}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Navigation */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:36,paddingTop:28,borderTop:"1px solid rgba(255,255,255,0.07)"}}>
+            <button className="step-btn" onClick={back} disabled={currentStep===0}
+              style={{padding:"13px 28px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,color:currentStep===0?"#334155":"#94a3b8",cursor:currentStep===0?"not-allowed":"pointer",fontSize:15,fontWeight:500,transition:"all 0.2s",fontFamily:"'DM Sans',sans-serif"}}>
+              ← Back
+            </button>
+            <div style={{display:"flex",gap:6}}>
+              {steps.map((_,i)=><div key={i} style={{width:i===currentStep?24:6,height:6,borderRadius:3,background:i===currentStep?"#38bdf8":i<currentStep?"#818cf8":"rgba(255,255,255,0.1)",transition:"all 0.3s"}}/>)}
+            </div>
+            {currentStep < steps.length - 1 ? (
+              <button className="step-btn" onClick={next}
+                style={{padding:"13px 32px",background:"linear-gradient(135deg,#38bdf8,#818cf8)",border:"none",borderRadius:10,color:"#fff",cursor:"pointer",fontSize:15,fontWeight:600,transition:"all 0.2s",fontFamily:"'DM Sans',sans-serif",boxShadow:"0 4px 20px rgba(56,189,248,0.25)"}}>
+                Continue →
+              </button>
+            ) : (
+              <button className="step-btn" onClick={handleSubmit}
+                style={{padding:"13px 32px",background:"linear-gradient(135deg,#10b981,#38bdf8)",border:"none",borderRadius:10,color:"#fff",cursor:"pointer",fontSize:15,fontWeight:700,transition:"all 0.2s",fontFamily:"'DM Sans',sans-serif",boxShadow:"0 4px 20px rgba(16,185,129,0.3)"}}>
+                🚀 Submit Application
+              </button>
+            )}
+          </div>
+        </div>
+        <p style={{textAlign:"center",color:"#334155",fontSize:13,marginTop:24}}>🔒 Your data is encrypted and handled in accordance with our Privacy Policy</p>
+      </div>
+    </div>
+  );
+}
